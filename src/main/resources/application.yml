@@ -1,0 +1,16 @@
+server:
+  port: 8081
+logging:
+  level:
+    org.springframework.jdbc.core: DEBUG
+
+spring:
+  application:
+    name: hata
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hata
+    username: hata
+    password: hata
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:liquibase/changelog-master.yml
