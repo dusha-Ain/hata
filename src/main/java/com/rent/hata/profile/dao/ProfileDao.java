@@ -4,8 +4,6 @@ import com.rent.hata.profile.dto.enums.ProfileRole;
 import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
 import com.rent.hata.web.exception.EntityToManyResultException;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;

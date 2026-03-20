@@ -4,6 +4,8 @@ import com.rent.hata.profile.dto.Profile;
 import com.rent.hata.profile.dto.ProfileSecurity;
 import com.rent.hata.profile.dto.ProfileUpdate;
 import com.rent.hata.profile.entity.ProfileEntity;
+import com.rent.hata.web.exception.ValidationException;
+import org.apache.logging.log4j.util.InternalException;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -12,6 +14,9 @@ import java.util.Optional;
 public class ProfileMapper {
 
     public ProfileEntity toEntity(ProfileSecurity profile) {
+        if (profile == null) {
+            throw new ValidationException("Profile should be not null");
+        }
         var profileEntity = new ProfileEntity();
         profileEntity.setLastName(profile.lastName());
         profileEntity.setFirstName(profile.firstName());
@@ -25,6 +30,9 @@ public class ProfileMapper {
 
     public ProfileEntity toEntity(ProfileEntity profileEntity,
                                   ProfileUpdate profile) {
+        if (profile == null) {
+            return profileEntity;
+        }
         Optional.ofNullable(profile.lastName()).ifPresent(profileEntity::setLastName);
         Optional.ofNullable(profile.firstName()).ifPresent(profileEntity::setFirstName);
         Optional.ofNullable(profile.patronymic()).ifPresent(profileEntity::setPatronymic);
@@ -36,6 +44,9 @@ public class ProfileMapper {
 
 
     public Profile toDomainProfile(ProfileEntity profile) {
+        if (profile == null) {
+            throw new InternalException("Profile should be not null");
+        }
         return new Profile(
                 profile.getId(),
                 profile.getLastName(),

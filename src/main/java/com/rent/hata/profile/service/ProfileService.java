@@ -36,7 +36,7 @@ public class ProfileService {
             throw new ValidationException("Profile creation failed");
         }
         ProfileEntity savedProfile = profileDao.getProfileByPhone(profile.phone())
-                .orElseThrow(() -> new ValidationException("Guest not found after create"));
+                .orElseThrow(() -> new ValidationException("Profile not found after create"));
         return mapper.toDomainProfile(savedProfile);
     }
 

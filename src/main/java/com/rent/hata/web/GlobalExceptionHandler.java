@@ -6,6 +6,7 @@ import com.rent.hata.web.exception.EntityStateException;
 import com.rent.hata.web.exception.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +46,8 @@ public class GlobalExceptionHandler {
             DataIntegrityViolationException.class,
             EntityStateException.class,
             MissingServletRequestParameterException.class,
-            BadCredentialsPasswordException.class
+            BadCredentialsPasswordException.class,
+            TypeMismatchException.class
     })
     public ResponseEntity<ErrorResponseDto> handleBadRequest(Exception e) {
         logger.info("Handle Illegal argument");
