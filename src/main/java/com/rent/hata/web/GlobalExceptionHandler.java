@@ -1,9 +1,6 @@
 package com.rent.hata.web;
 
-import com.rent.hata.web.exception.BadCredentialsPasswordException;
-import com.rent.hata.web.exception.EntityNotFoundException;
-import com.rent.hata.web.exception.EntityStateException;
-import com.rent.hata.web.exception.ValidationException;
+import com.rent.hata.web.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -25,7 +22,10 @@ public class GlobalExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     //Отлавливает все ошибки, если они отдельно не описываются
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(exception = {
+            Exception.class,
+            EntityNotFoundInternalException.class
+    })
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception e) {
         logger.info("Handle exception");
         var error = new ErrorResponseDto(
