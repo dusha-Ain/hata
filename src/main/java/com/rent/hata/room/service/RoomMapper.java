@@ -6,7 +6,6 @@ import com.rent.hata.room.dto.RoomDetails;
 import com.rent.hata.room.dto.RoomUpdate;
 import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
-import com.rent.hata.web.exception.ValidationException;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -14,10 +13,14 @@ import java.util.Optional;
 @Component
 public class RoomMapper {
 
+    private final RoomValidator roomValidator;
+
+    public RoomMapper(RoomValidator roomValidator) {
+        this.roomValidator = roomValidator;
+    }
+
     public AddressEntity toEntity(Address address) {
-        if (address == null) {
-            throw new ValidationException("Address should be not null");
-        }
+        roomValidator.checkNotNull(address);
         return new AddressEntity(
                 address.id(),
                 address.country(),
@@ -38,14 +41,11 @@ public class RoomMapper {
         Optional.ofNullable(address.houseNumber()).ifPresent(addressEntity::setHouseNumber);
         Optional.ofNullable(address.roomNumber()).ifPresent(addressEntity::setRoomNumber);
         addressEntity.setFullAddress(addressEntity.fullAddress());
-
         return addressEntity;
     }
 
     public Address toDomainAddress(AddressEntity address) {
-        if (address == null) {
-            throw new ValidationException("Address should be not null");
-        }
+        roomValidator.checkNotNull(address);
         return new Address(
                 address.getId(),
                 address.getCountry(),
@@ -58,9 +58,7 @@ public class RoomMapper {
     }
 
     public RoomEntity toEntity(RoomDetails room) {
-        if (room == null) {
-            throw new ValidationException("Room should be not null");
-        }
+        roomValidator.checkNotNull(room);
         return new RoomEntity(
                 room.id(),
                 room.idOwner(),
@@ -86,9 +84,7 @@ public class RoomMapper {
     }
 
     public RoomUpdate toDomainRoomUpdate(RoomEntity room){
-        if (room == null) {
-            throw new ValidationException("Room should be not null");
-        }
+        roomValidator.checkNotNull(room);
         return new RoomUpdate(
                 room.getCapacity(),
                 room.getPrice(),
@@ -98,12 +94,8 @@ public class RoomMapper {
     }
 
     public RoomDetails toDomainRoomDetails(RoomEntity room, AddressEntity address) {
-        if (room == null) {
-            throw new ValidationException("Room should be not null");
-        }
-        if (address == null) {
-            throw new ValidationException("Address should be not null");
-        }
+        roomValidator.checkNotNull(room);
+        roomValidator.checkNotNull(address);
         return new RoomDetails(
                 room.getId(),
                 room.getIdOwner(),
@@ -119,9 +111,7 @@ public class RoomMapper {
     }
 
     public Room toDomainRoom(RoomEntity room) {
-        if (room == null) {
-            throw new ValidationException("Room should be not null");
-        }
+        roomValidator.checkNotNull(room);
         return new Room(
                 room.getId(),
                 room.getIdOwner(),

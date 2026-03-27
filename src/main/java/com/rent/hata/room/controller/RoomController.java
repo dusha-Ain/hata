@@ -1,11 +1,14 @@
 package com.rent.hata.room.controller;
 
-import com.rent.hata.room.dto.*;
+import com.rent.hata.room.dto.Address;
+import com.rent.hata.room.dto.RoomDetails;
+import com.rent.hata.room.dto.RoomUpdate;
+import com.rent.hata.room.dto.Rooms;
+import com.rent.hata.room.dto.enums.RoomStatus;
 import com.rent.hata.room.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.ServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,7 @@ public class RoomController {
     @PostMapping
     public ResponseEntity<RoomDetails> addRoom(
             @Parameter(description = "Данные о квартире")
-            @Valid @RequestBody RoomDetails room, ServletRequest servletRequest) {
+            @Valid @RequestBody RoomDetails room) {
         logger.info("Called addRoom");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.addRoom(room));
@@ -85,11 +88,35 @@ public class RoomController {
     }
 
 
+    @Operation(summary = "Инкремент счётчика просмотров квартиры")
+    @PutMapping("/views/inc/{id}")
+    public ResponseEntity<Void> increaseViews(
+            @Parameter(description = "Идентификатор квартиры")
+            @PathVariable UUID id) {
+        logger.info("Called increaseViews by id = {}", id);
+        service.increaseViews(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+
+    @Operation(summary = "Обновить статус квартиры")
+    @PutMapping("/status/{id}")
+    public ResponseEntity<Void> changeStatusRoom(
+            @Parameter(description = "Идентификатор квартиры")
+            @PathVariable UUID id,
+            @Parameter(description = "Статус квартиры")
+            RoomStatus status) {
+        logger.info("Called changeStatusRoom by id = {}, status = {}", id, status);
+        service.changeStatusRoomById(id, status);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+
     @Operation(summary = "Удалить квартиру")
     @DeleteMapping("delete/{id}")
-    public  ResponseEntity<Void> deleteRoom(
+    public ResponseEntity<Void> deleteRoom(
             @Parameter(description = "Идентификатор квартиры")
-            @PathVariable UUID id){
+            @PathVariable UUID id) {
         logger.info("Called deleteRoom by id = {}", id);
         service.deleteRoomById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

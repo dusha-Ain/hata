@@ -5,6 +5,8 @@ import com.rent.hata.room.dto.Address;
 import com.rent.hata.room.dto.RoomDetails;
 import com.rent.hata.room.dto.RoomUpdate;
 import com.rent.hata.room.dto.Rooms;
+import com.rent.hata.room.dto.enums.Operation;
+import com.rent.hata.room.dto.enums.RoomStatus;
 import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
@@ -20,10 +22,12 @@ public class RoomService {
 
     private final RoomMapper mapper;
     private final RoomDao roomDao;
+    private final RoomValidator roomValidator;
 
-    public RoomService(RoomMapper mapper, RoomDao roomDao) {
+    public RoomService(RoomMapper mapper, RoomDao roomDao, RoomValidator roomValidator) {
         this.mapper = mapper;
         this.roomDao = roomDao;
+        this.roomValidator = roomValidator;
     }
 
 
@@ -35,32 +39,29 @@ public class RoomService {
             throw new ValidationException(String.format("Room with address = %s already exist", address.fullAddress()));
         }
         var roomEntity = mapper.toEntity(room);
-        if (!roomDao.createAddress(address)) {
-            throw new ValidationException("Address creation failed");
-        }
-        AddressEntity savedAddress = roomDao.getAddressByAddressWithLock(address)
-                .orElseThrow(() -> new EntityNotFoundInternalException("Not found address after create"));
-        if (!roomDao.createRoom(roomEntity, savedAddress.getId())) {
-            throw new ValidationException("Room creation failed");
-        }
-        var savedRoom = roomDao.getRoomByAddress(savedAddress)
-                .orElseThrow(() -> new EntityNotFoundInternalException(
-                        String.format("Room not found after create by address = %s", address.fullAddress())
-                ));
+        roomValidator.validateAddressCreate(roomDao.createAddress(address));
+        AddressEntity savedAddress = roomValidator.checkAddressExistsInternal(
+                roomDao.getAddressByAddressWithLock(address),
+                address,
+                Operation.CREATE
+        );
+        roomValidator.validateRoomCreate(roomDao.createRoom(roomEntity, savedAddress.getId()));
+        var savedRoom = roomValidator.checkRoomExistsInternal(
+                roomDao.getRoomByAddress(savedAddress),
+                savedAddress,
+                Operation.CREATE
+        );
         return mapper.toDomainRoomDetails(savedRoom, savedAddress);
     }
 
 
     @Transactional
     public RoomDetails getRoomById(UUID id) {
-        var room = roomDao.getRoomById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found room by id = %s", id)
-                ));
-        var address = roomDao.getAddressById(room.getIdAddress())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found address by id = %s", room.getIdAddress())
-                ));
+        var room = roomValidator.checkRoomExists(roomDao.getRoomById(id), id);
+        var address = roomValidator.checkAddressExists(
+                roomDao.getAddressById(room.getIdAddress()),
+                room.getIdAddress()
+        );
         return mapper.toDomainRoomDetails(room, address);
     }
 
@@ -74,64 +75,55 @@ public class RoomService {
 
     @Transactional
     public RoomUpdate updateRoomById(UUID id, RoomUpdate room) {
-        var maybeRoom = roomDao.getRoomByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found room by id = %s", id)
-                ));
+        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
         var roomUpdate = mapper.toEntity(maybeRoom, room);
-        if (!roomDao.updateRoom(roomUpdate)) {
-            throw new InternalUpdateException(
-                    String.format("Room update by id = %s failed", id)
-            );
-        }
-        var savedRoom = roomDao.getRoomById(id)
-                .orElseThrow(() -> new EntityNotFoundInternalException(
-                        String.format("Room not found after create by id = %s", id)));
+        roomValidator.validateRoomUpdate(roomDao.updateRoom(roomUpdate), id);
+        var savedRoom = roomValidator.checkRoomExistsInternal(
+                roomDao.getRoomById(id),
+                id,
+                Operation.UPDATE
+        );
         return mapper.toDomainRoomUpdate(savedRoom);
 
     }
 
     @Transactional
     public Address updateRoomAddressById(UUID id, Address address) {
-        var maybeRoom = roomDao.getRoomByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found room by id = %s", id)
-                ));
+        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
         UUID idAddress = maybeRoom.getIdAddress();
-        var maybeAddress = roomDao.getAddressByIdWithLock(idAddress)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Address not found by id = %s", idAddress)));
+        var maybeAddress = roomValidator.checkAddressExists(
+                roomDao.getAddressByIdWithLock(idAddress), idAddress
+        );
         var addressUpdate = mapper.toEntity(maybeAddress, address);
-        if (!roomDao.updateRoomAddress(addressUpdate)) {
-            throw new InternalUpdateException(
-                    String.format("Address update by id = %s failed", id));
-        }
-        var savedAddress = roomDao.getAddressById(idAddress)
-                .orElseThrow(() -> new EntityNotFoundInternalException(
-                        String.format("Room not found after create by id = %s", idAddress)));
+        roomValidator.validateAddressUpdate(roomDao.updateRoomAddress(addressUpdate), id);
+        var savedAddress = roomValidator.checkAddressExistsInternal(
+                roomDao.getAddressById(idAddress),
+                idAddress,
+                Operation.UPDATE
+        );
         return mapper.toDomainAddress(savedAddress);
     }
 
 
     @Transactional
     public void deleteRoomById(UUID id) {
-        var maybeRoom = roomDao.getRoomByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found room by id = %s", id)
-                ));
-        var maybeAddress = roomDao.getAddressByIdWithLock(maybeRoom.getIdAddress())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Not found address by id = %s", id)
-                ));
-        if (!roomDao.deleteRoom(id)) {
-            throw new InternalDeleteException(
-                    String.format("Room delete by id = %s failed", id)
-            );
-        }
-        if (!roomDao.deleteAddress(maybeAddress.getId())) {
-            throw new InternalDeleteException(
-                    String.format("Address delete by id = %s failed", maybeAddress.getId())
-            );
-        }
+        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        var maybeAddress = roomValidator.checkAddressExists(
+                roomDao.getAddressByIdWithLock(maybeRoom.getIdAddress()), id
+        );
+        roomValidator.validateRoomDelete(roomDao.deleteRoom(id), id);
+        roomValidator.validateAddressDelete(
+                roomDao.deleteAddress(maybeAddress.getId()), maybeAddress.getId()
+        );
+    }
+
+    public void increaseViews(UUID id) {
+        roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        roomValidator.validateRoomUpdate(roomDao.increaseRoomViews(id), id);
+    }
+
+    public void changeStatusRoomById(UUID id, RoomStatus status) {
+        roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        roomValidator.validateRoomUpdate(roomDao.changeRoomStatus(id, status), id);
     }
 }

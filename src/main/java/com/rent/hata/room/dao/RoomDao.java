@@ -209,7 +209,7 @@ public class RoomDao {
         return 1 == template.update(sql, map);
     }
 
-    public boolean updateRoom(RoomEntity room){
+    public boolean updateRoom(RoomEntity room) {
         String sql = """
                 UPDATE room
                 SET capacity=:capacity, price=:price, room_pictures=:picture,
@@ -222,10 +222,10 @@ public class RoomDao {
                 .addValue("picture", room.getRoomPictures())
                 .addValue("text", room.getDescription())
                 .addValue("id", room.getId());
-        return  1 == template.update(sql, map);
+        return 1 == template.update(sql, map);
     }
 
-    public boolean updateRoomAddress(AddressEntity address){
+    public boolean updateRoomAddress(AddressEntity address) {
         String sql = """
                 UPDATE address
                 SET country=:country, city=:city, street=:street,
@@ -240,7 +240,7 @@ public class RoomDao {
                 .addValue("room", address.getRoomNumber())
                 .addValue("full", address.getFullAddress())
                 .addValue("id", address.getId());
-        return  1 == template.update(sql, map);
+        return 1 == template.update(sql, map);
     }
 
     public boolean deleteAddress(UUID id) {
@@ -251,6 +251,19 @@ public class RoomDao {
     public boolean deleteRoom(UUID id) {
         String sql = "DELETE FROM room WHERE id=:id";
         return 1 == template.update(sql, new MapSqlParameterSource("id", id));
+    }
+
+    public boolean increaseRoomViews(UUID id) {
+        String sql = "UPDATE room SET views = views + 1 WHERE id=:id";
+        return 1 == template.update(sql, new MapSqlParameterSource("id", id));
+    }
+
+    public boolean changeRoomStatus(UUID id, RoomStatus status) {
+        String sql = "UPDATE room SET status=:status WHERE id=:id";
+        var map = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("status", status.name());
+        return 1 == template.update(sql, map);
     }
 
 }
