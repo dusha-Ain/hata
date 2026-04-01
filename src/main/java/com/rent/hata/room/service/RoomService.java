@@ -10,6 +10,7 @@ import com.rent.hata.room.dto.enums.RoomStatus;
 import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
+import com.rent.hata.web.AppConfig;
 import com.rent.hata.web.exception.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +25,13 @@ public class RoomService {
     private final RoomDao roomDao;
     private final RoomValidator roomValidator;
 
-    public RoomService(RoomMapper mapper, RoomDao roomDao, RoomValidator roomValidator) {
+    private final AppConfig appConfig;
+
+    public RoomService(RoomMapper mapper, RoomDao roomDao, RoomValidator roomValidator, AppConfig appConfig) {
         this.mapper = mapper;
         this.roomDao = roomDao;
         this.roomValidator = roomValidator;
+        this.appConfig = appConfig;
     }
 
 
@@ -66,8 +70,10 @@ public class RoomService {
     }
 
 
-    public Rooms getAllRooms() {
-        RoomsEntity roomsEntity = roomDao.getAllRooms();
+    public Rooms getAllRoomsByFilter(RoomSearchFilter filter) {
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : appConfig.getDefaultPageSize();
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : appConfig.getGetDefaultPageNumber();
+        RoomsEntity roomsEntity = roomDao.getAllRoomsByFilter(filter, pageSize, pageNumber);
         return new Rooms(roomsEntity.list.stream()
                 .map(mapper::toDomainRoom).toList());
     }

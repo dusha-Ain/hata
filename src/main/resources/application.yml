@@ -16,3 +16,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   liquibase:
     change-log: classpath:liquibase/changelog-master.yml
+
+default:
+  page:
+    size: 5
+    number: 0

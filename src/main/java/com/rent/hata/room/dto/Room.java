@@ -18,6 +18,7 @@ public record Room(
         UUID idAddress,
 
         @Max(value = 10)
+        @Min(value = 1)
         @Schema(description = "Количество комнат", example = "2")
         Integer capacity,
 

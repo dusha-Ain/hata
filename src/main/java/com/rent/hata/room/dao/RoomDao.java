@@ -4,6 +4,7 @@ import com.rent.hata.room.dto.enums.RoomStatus;
 import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
+import com.rent.hata.room.service.RoomSearchFilter;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -147,10 +148,32 @@ public class RoomDao {
         return room.stream().findFirst();
     }
 
-    public RoomsEntity getAllRooms() {
-        String sql = "SELECT * FROM room";
-        return new RoomsEntity(template.query(sql, roomRowMapper));
+    public RoomsEntity getAllRoomsByFilter(RoomSearchFilter filter,
+                                           int pageSize, int pageNumber) {
+        String sql = """
+                SELECT r.*
+                FROM room AS r
+                JOIN address AS a ON r.id_address=a.id
+                WHERE  (r.price = COALESCE(:price, r.price))
+                  AND (r.capacity = COALESCE(:capacity, r.capacity))
+                  AND (a.country = COALESCE(:country, a.country))
+                  AND (a.city = COALESCE(:city, a.city))
+                  AND (a.street = COALESCE(:street, a.street))
+                  AND (a.house_number = COALESCE(:houseNumber, a.house_number))
+                LIMIT :limit OFFSET :offset
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("price", filter.price())
+                .addValue("capacity", filter.capacity())
+                .addValue("country",  filter.address() != null ? filter.address().country() : null)
+                .addValue("city",  filter.address() != null ? filter.address().city() : null)
+                .addValue("street",  filter.address() != null ? filter.address().street() : null)
+                .addValue("houseNumber",  filter.address() != null ? filter.address().houseNumber() : null)
+                .addValue("limit", pageSize)
+                .addValue("offset", pageNumber * pageSize);
+        return new RoomsEntity(template.query(sql, map, roomRowMapper));
     }
+
 
     public Optional<RoomEntity> getRoomByIdWithLock(UUID id) {
         String sql = "SELECT * FROM room WHERE id=:id FOR UPDATE";

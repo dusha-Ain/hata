@@ -1,10 +1,8 @@
 package com.rent.hata.room.controller;
 
-import com.rent.hata.room.dto.Address;
-import com.rent.hata.room.dto.RoomDetails;
-import com.rent.hata.room.dto.RoomUpdate;
-import com.rent.hata.room.dto.Rooms;
+import com.rent.hata.room.dto.*;
 import com.rent.hata.room.dto.enums.RoomStatus;
+import com.rent.hata.room.service.RoomSearchFilter;
 import com.rent.hata.room.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,12 +51,28 @@ public class RoomController {
     }
 
 
-    @Operation(summary = "Показать все квартиры + потом добавить фильтр")
+    @Operation(summary = "Показать все квартиры")
     @GetMapping("/")
-    public ResponseEntity<Rooms> getAllRooms() {
-        logger.info("Called getAllRooms");
+    public ResponseEntity<Rooms> getAllRooms(
+            @Parameter(description = "Цена аренды")
+            @RequestParam(name = "price", required = false) Integer price,
+
+            @Parameter(description = "Количество комнат в квартире")
+            @RequestParam(name = "capacity", required = false) Integer capacity,
+
+            @Parameter(description = "Адресс")
+            @RequestParam(name = "address", required = false) AddressSearch address,
+
+            @Parameter(description = "Количество комнат для вывода")
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+
+            @Parameter(description = "Номер страницы поиска")
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    ) {
+        logger.info("Called getAllRoomsByFilter");
+        var filter = new RoomSearchFilter(price, capacity, address, pageSize, pageNumber);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.getAllRooms());
+                .body(service.getAllRoomsByFilter(filter));
     }
 
 
