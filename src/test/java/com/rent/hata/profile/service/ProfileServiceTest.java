@@ -34,6 +34,7 @@ class ProfileServiceTest {
     @Mock
     private ProfileDao profileDao;
 
+
     @Captor
     private ArgumentCaptor<ProfileEntity> profileEntityCaptor;
 
@@ -173,7 +174,7 @@ class ProfileServiceTest {
         // when/then
         assertThatThrownBy(() -> profileService.getById(TEST_ID))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Guest not found by id = " + TEST_ID);
+                .hasMessageContaining("Profile not found by id = " + TEST_ID);
 
         verify(profileDao).getById(TEST_ID);
         verify(mapper, never()).toDomainProfile(any());

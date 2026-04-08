@@ -3,9 +3,6 @@ package com.rent.hata.profile.service;
 import com.rent.hata.profile.dao.ProfileDao;
 import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
-import com.rent.hata.web.exception.BadCredentialsPasswordException;
-import com.rent.hata.web.exception.EntityNotFoundException;
-import com.rent.hata.web.exception.ValidationException;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +16,8 @@ public class ProfileService {
     private final ProfileDao profileDao;
     private final ProfileMapper mapper;
 
-    public ProfileService(ProfileDao profileDao, ProfileMapper mapper) {
+    public ProfileService(ProfileDao profileDao,
+                          ProfileMapper mapper) {
         this.profileDao = profileDao;
         this.mapper = mapper;
     }
@@ -28,25 +26,19 @@ public class ProfileService {
     public Profile addProfile(ProfileSecurity profile) {
         Optional<ProfileEntity> maybeGuest =
                 profileDao.getProfileByPhoneWithLock(profile.phone());
-        if (maybeGuest.isPresent()) {
-            throw new ValidationException(String.format("Profile by phone = %s already exist", profile.phone()));
-        }
+        ProfileValidator.validateForCreate(profile, maybeGuest);
         var profileEntity = mapper.toEntity(profile);
-        if (!profileDao.createProfile(profileEntity)) {
-            throw new ValidationException("Profile creation failed");
-        }
-        ProfileEntity savedProfile = profileDao.getProfileByPhone(profile.phone())
-                .orElseThrow(() -> new ValidationException("Profile not found after create"));
+        ProfileValidator.validateProfileCreate(profileDao.createProfile(profileEntity));
+        ProfileEntity savedProfile = ProfileValidator.checkProfileExistsAfterCreate(
+                profileDao.getProfileByPhone(profile.phone()));
         return mapper.toDomainProfile(savedProfile);
     }
 
 
     public Profile getById(UUID id) {
-        ProfileEntity findGuest = profileDao.getById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Guest not found by id = %s", id))
-                );
-        return mapper.toDomainProfile(findGuest);
+        ProfileEntity findProfile =
+                ProfileValidator.checkProfileExists(profileDao.getById(id), id);
+        return mapper.toDomainProfile(findProfile);
     }
 
 
@@ -59,49 +51,28 @@ public class ProfileService {
 
     @Transactional
     public void deleteProfile(UUID id) {
-        profileDao.getByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Profile not found by id = %s", id))
-                );
-        if (!profileDao.delete(id)) {
-            throw new ValidationException(String.format("Profile delete by id = %s failed", id));
-        }
+        ProfileValidator.checkProfileExists(profileDao.getByIdWithLock(id), id);
+        ProfileValidator.validateProfileDelete(profileDao.delete(id), id);
     }
 
 
     @Transactional
     public Profile updateProfile(UUID id, ProfileUpdate profile) {
-        ProfileEntity findProfile = profileDao.getByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Profile not found by id = %s", id))
-                );
+        ProfileEntity findProfile =
+                ProfileValidator.checkProfileExists(profileDao.getByIdWithLock(id), id);
         var updateProfile = mapper.toEntity(findProfile, profile);
-        if (!profileDao.update(updateProfile)) {
-            throw new ValidationException(String.format("Profile update by id = %s failed", id));
-        }
-        ProfileEntity savedProfile = profileDao.getById(id)
-                .orElseThrow(() -> new ValidationException(
-                        String.format("Profile by id = %s not found after update", id)));
+        ProfileValidator.validateProfileUpdate(profileDao.update(updateProfile), id);
+        ProfileEntity savedProfile =
+                ProfileValidator.checkProfileExistsAfterUpdate(profileDao.getById(id), id);
         return mapper.toDomainProfile(savedProfile);
     }
 
 
     @Transactional
     public void updateProfilePassword(UUID id, @Valid ProfilePassword password) {
-        var maybeProfile = profileDao.getByIdWithLock(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Profile not found by id = %s", id))
-                );
-        if (!maybeProfile.getPassword().equals(password.currentPassword())){
-            throw new BadCredentialsPasswordException("Wrong old password");
-        }
-
-        if (!password.newPassword().equals(password.confirmPassword())){
-            throw new ValidationException("Passwords don't match");
-        }
-
-        if (!profileDao.updatePassword(id, password.newPassword())){
-            throw new ValidationException(String.format("Profile password update by id = %s failed", id));
-        };
+        var maybeProfile =
+                ProfileValidator.checkProfileExists(profileDao.getByIdWithLock(id), id);
+        ProfileValidator.validatePasswordForUpdate(maybeProfile, password);
+        ProfileValidator.validatePasswordUpdate(profileDao.updatePassword(id, password.newPassword()), id);
     }
 }

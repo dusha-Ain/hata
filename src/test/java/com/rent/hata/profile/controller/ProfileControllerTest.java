@@ -59,7 +59,7 @@ class ProfileControllerTest {
                 .thenReturn(testProfile);
 
         // When & Then
-        mockMvc.perform(post("/api/profile")
+        mockMvc.perform(post("/api/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testProfileSecurity)))
                 .andExpect(status().isCreated())
@@ -85,7 +85,7 @@ class ProfileControllerTest {
                 null                          // profilePicture
         );
         // When & Then
-        mockMvc.perform(post("/api/profile")
+        mockMvc.perform(post("/api/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidProfile)))
                 .andExpect(status().isBadRequest());
@@ -97,7 +97,7 @@ class ProfileControllerTest {
     @Test
     void addProfileWithNullDataShouldReturnBadRequest() throws Exception {
         // When & Then
-        mockMvc.perform(post("/api/profile")
+        mockMvc.perform(post("/api/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("null"))
                 .andExpect(status().isBadRequest());
@@ -108,7 +108,7 @@ class ProfileControllerTest {
     @Test
     void addProfileWithEmptyRequestBodyShouldReturnBadRequest() throws Exception {
         // When & Then
-        mockMvc.perform(post("/api/profile")
+        mockMvc.perform(post("/api/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(""))
                 .andExpect(status().isBadRequest());
@@ -126,7 +126,7 @@ class ProfileControllerTest {
                 .thenReturn(testProfile);
 
         // When & Then
-        mockMvc.perform(get("/api/profile/{id}", TestData.TEST_ID))
+        mockMvc.perform(get("/api/profiles/{id}", TestData.TEST_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(TestData.TEST_ID.toString()))
                 .andExpect(jsonPath("$.lastName").value("Ivanov"))
@@ -148,7 +148,7 @@ class ProfileControllerTest {
                 .thenThrow(new EntityNotFoundException("Profile not found by id: " + nonExistentId));
 
         // When & Then
-        mockMvc.perform(get("/api/profile/{id}", nonExistentId))
+        mockMvc.perform(get("/api/profiles/{id}", nonExistentId))
                 .andExpect(status().isNotFound());
 
         verify(profileService, times(1)).getById(nonExistentId);
@@ -157,7 +157,7 @@ class ProfileControllerTest {
     @Test
     void getProfileByIdWithInvalidIdShouldReturnBadRequest() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/profile/{id}", "invalid-uuid"))
+        mockMvc.perform(get("/api/profiles/{id}", "invalid-uuid"))
                 .andExpect(status().isBadRequest());
 
         verify(profileService, never()).getById(any());
@@ -184,7 +184,7 @@ class ProfileControllerTest {
         when(profileService.getAllProfiles()).thenReturn(profiles);
 
         // When & Then
-        mockMvc.perform(get("/api/profile/"))
+        mockMvc.perform(get("/api/profiles/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.list").isArray())
                 .andExpect(jsonPath("$.list.length()").value(2))
@@ -203,7 +203,7 @@ class ProfileControllerTest {
         when(profileService.getAllProfiles()).thenReturn(emptyProfiles);
 
         // When & Then
-        mockMvc.perform(get("/api/profile/"))
+        mockMvc.perform(get("/api/profiles/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.list").isArray())
                 .andExpect(jsonPath("$.list.length()").value(0));
@@ -232,7 +232,7 @@ class ProfileControllerTest {
                 .thenReturn(updatedProfile);
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profileUpdate)))
                 .andExpect(status().isOk())
@@ -259,7 +259,7 @@ class ProfileControllerTest {
         );
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUpdate)))
                 .andExpect(status().isBadRequest());
@@ -277,7 +277,7 @@ class ProfileControllerTest {
                 .thenThrow(new EntityNotFoundException("Profile not found by id: " + nonExistentId));
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}", nonExistentId)
+        mockMvc.perform(put("/api/profiles/update/{id}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profileUpdate)))
                 .andExpect(status().isNotFound());
@@ -291,7 +291,7 @@ class ProfileControllerTest {
         ProfileUpdate profileUpdate = testData.createTestProfileUpdate();
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}", "invalid-uuid")
+        mockMvc.perform(put("/api/profiles/update/{id}", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profileUpdate)))
                 .andExpect(status().isBadRequest());
@@ -315,7 +315,7 @@ class ProfileControllerTest {
                 .updateProfilePassword(eq(TestData.TEST_ID), any(ProfilePassword.class));
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}/password", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}/password", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profilePassword)))
                 .andExpect(status().isOk());
@@ -334,7 +334,7 @@ class ProfileControllerTest {
         );
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}/password", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}/password", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidPassword)))
                 .andExpect(status().isBadRequest());
@@ -345,7 +345,7 @@ class ProfileControllerTest {
     @Test
     void updateProfilePasswordWithNullDataShouldReturnBadRequest() throws Exception {
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}/password", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}/password", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("null"))
                 .andExpect(status().isBadRequest());
@@ -367,7 +367,7 @@ class ProfileControllerTest {
                 .updateProfilePassword(eq(TestData.TEST_ID), any(ProfilePassword.class));
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}/password", TestData.TEST_ID)
+        mockMvc.perform(put("/api/profiles/update/{id}/password", TestData.TEST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profilePassword)))
                 .andExpect(status().isBadRequest());
@@ -391,7 +391,7 @@ class ProfileControllerTest {
                 .updateProfilePassword(eq(nonExistentId), any(ProfilePassword.class));
 
         // When & Then
-        mockMvc.perform(put("/api/profile/update/{id}/password", nonExistentId)
+        mockMvc.perform(put("/api/profiles/update/{id}/password", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(profilePassword)))
                 .andExpect(status().isNotFound());
@@ -410,7 +410,7 @@ class ProfileControllerTest {
         doNothing().when(profileService).deleteProfile(TestData.TEST_ID);
 
         // When & Then
-        mockMvc.perform(delete("/api/profile/delete/{id}", TestData.TEST_ID))
+        mockMvc.perform(delete("/api/profiles/delete/{id}", TestData.TEST_ID))
                 .andExpect(status().isNoContent());
 
         verify(profileService, times(1)).deleteProfile(TestData.TEST_ID);
@@ -424,7 +424,7 @@ class ProfileControllerTest {
                 .when(profileService).deleteProfile(nonExistentId);
 
         // When & Then
-        mockMvc.perform(delete("/api/profile/delete/{id}", nonExistentId))
+        mockMvc.perform(delete("/api/profiles/delete/{id}", nonExistentId))
                 .andExpect(status().isNotFound());
 
         verify(profileService, times(1)).deleteProfile(nonExistentId);
@@ -433,7 +433,7 @@ class ProfileControllerTest {
     @Test
     void deleteProfileWithInvalidIdShouldReturnBadRequest() throws Exception {
         // When & Then
-        mockMvc.perform(delete("/api/profile/delete/{id}", "invalid-uuid"))
+        mockMvc.perform(delete("/api/profiles/delete/{id}", "invalid-uuid"))
                 .andExpect(status().isBadRequest());
 
         verify(profileService, never()).deleteProfile(any());
