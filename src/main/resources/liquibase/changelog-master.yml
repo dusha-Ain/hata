@@ -3,3 +3,5 @@ databaseChangeLog:
       file: liquibase/migrations/01_init-profile.sql
   - include:
       file: liquibase/migrations/02_init-room-with-address.sql
+  - include:
+      file: liquibase/migrations/03_init-comfort-with-room_comfort.sql
