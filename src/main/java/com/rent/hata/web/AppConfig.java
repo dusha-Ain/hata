@@ -1,22 +1,33 @@
 package com.rent.hata.web;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AppConfig {
 
+
+    private static int defaultPageSize;
+    private static int defaultPageNumber;
+
     @Value("${default.page.size}")
-    private int defaultPageSize;
+    private int defaultPageSizeNonStatic;
 
     @Value("${default.page.number}")
-    private int getDefaultPageNumber;
+    private int defaultPageNumberNonStatic;
 
-    public int getDefaultPageSize() {
+    @PostConstruct
+    private void init() {
+        defaultPageSize = defaultPageSizeNonStatic;
+        defaultPageNumber = defaultPageNumberNonStatic;
+    }
+
+    public static int getDefaultPageSize() {
         return defaultPageSize;
     }
 
-    public int getGetDefaultPageNumber() {
-        return getDefaultPageNumber;
+    public static int getDefaultPageNumber() {
+        return defaultPageNumber;
     }
 }

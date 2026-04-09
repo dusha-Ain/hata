@@ -17,12 +17,10 @@ public class ComfortService {
 
     private final ComfortMapper mapper;
     private final ComfortDao comfortDao;
-    private final AppConfig appConfig;
 
-    public ComfortService(ComfortMapper mapper, ComfortDao comfortDao, AppConfig appConfig) {
+    public ComfortService(ComfortMapper mapper, ComfortDao comfortDao) {
         this.mapper = mapper;
         this.comfortDao = comfortDao;
-        this.appConfig = appConfig;
     }
 
 
@@ -46,8 +44,8 @@ public class ComfortService {
     }
 
     public Comforts getAllComfortsByFilter(ComfortSearchFilter filter) {
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : appConfig.getDefaultPageSize();
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : appConfig.getGetDefaultPageNumber();
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : AppConfig.getDefaultPageSize();
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : AppConfig.getDefaultPageNumber();
         var comfortsEntity = comfortDao.getAllComfortsByFilter(filter, pageSize, pageNumber);
         return new Comforts(comfortsEntity.list.stream()
                 .map(mapper::toDomainComfort).toList());

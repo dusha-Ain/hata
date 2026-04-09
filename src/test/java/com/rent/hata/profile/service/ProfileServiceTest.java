@@ -5,6 +5,7 @@ import com.rent.hata.profile.dao.ProfileDao;
 import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
+import com.rent.hata.room.service.RoomMapper;
 import com.rent.hata.web.exception.BadCredentialsPasswordException;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.ValidationException;
@@ -18,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.rent.hata.data.TestData.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +32,11 @@ class ProfileServiceTest {
     private ProfileMapper mapper;
 
     @Mock
+    private RoomMapper roomMapper;
+
+    @Mock
     private ProfileDao profileDao;
+
 
 
     @Captor
@@ -44,7 +48,7 @@ class ProfileServiceTest {
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(profileDao, mapper);
+        profileService = new ProfileService(profileDao, mapper, roomMapper);
     }
 
 

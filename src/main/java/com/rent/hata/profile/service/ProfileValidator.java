@@ -1,5 +1,6 @@
 package com.rent.hata.profile.service;
 
+import com.rent.hata.profile.dto.IdFavorite;
 import com.rent.hata.profile.dto.ProfilePassword;
 import com.rent.hata.profile.dto.ProfileSecurity;
 import com.rent.hata.profile.entity.ProfileEntity;
@@ -79,6 +80,44 @@ public class ProfileValidator {
         return profile.orElseThrow(() -> new EntityNotFoundException(
                 String.format("Profile not found by id = %s", id)
         ));
+    }
+
+    public static void validateRoomFromFavoriteExists(boolean check, IdFavorite id){
+        if (!check) {
+            throw new ValidationException(
+                    String.format("idRoom = %s, idOwner = %s not found from favorite profile by id = %s",
+                            id.idRoom(), id.idOwner(), id.idProfile()));
+        }
+    }
+
+    public static void validateRoomFromFavoriteNotExists(boolean check, IdFavorite id){
+        if (check) {
+            throw new ValidationException(
+                    String.format("idRoom = %s, idOwner = %s already exist from favorite profile by id = %s",
+                            id.idRoom(), id.idOwner(), id.idProfile()));
+        }
+    }
+
+    public static void validateDeleteFromFavoriteResult(boolean delete, IdFavorite id) {
+        if (!delete) {
+            throw new ValidationException(
+                    String.format("idRoom = %s, idOwner = %s delete from favorite failed by profile id = %s",
+                            id.idRoom(), id.idOwner(), id.idProfile()));
+        }
+    }
+
+    public static void validateAddFromFavoriteResult(boolean add, IdFavorite id) {
+        if (!add) {
+            throw new ValidationException(
+                    String.format("idRoom = %s, idOwner = %s add from favorite failed by profile id = %s",
+                            id.idRoom(), id.idOwner(), id.idProfile()));
+        }
+    }
+
+    public static void CheckPageParam(int param){
+        if (param < 0) {
+            throw new ValidationException("Page param must be positive");
+        }
     }
 
 }

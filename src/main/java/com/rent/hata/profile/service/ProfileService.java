@@ -3,10 +3,15 @@ package com.rent.hata.profile.service;
 import com.rent.hata.profile.dao.ProfileDao;
 import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
+import com.rent.hata.room.dto.Rooms;
+import com.rent.hata.room.entity.RoomsEntity;
+import com.rent.hata.room.service.RoomMapper;
+import com.rent.hata.web.AppConfig;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,11 +20,14 @@ public class ProfileService {
 
     private final ProfileDao profileDao;
     private final ProfileMapper mapper;
+    private final RoomMapper roomMapper;
 
     public ProfileService(ProfileDao profileDao,
-                          ProfileMapper mapper) {
+                          ProfileMapper mapper,
+                          RoomMapper roomMapper) {
         this.profileDao = profileDao;
         this.mapper = mapper;
+        this.roomMapper = roomMapper;
     }
 
     @Transactional
@@ -74,5 +82,31 @@ public class ProfileService {
                 ProfileValidator.checkProfileExists(profileDao.getByIdWithLock(id), id);
         ProfileValidator.validatePasswordForUpdate(maybeProfile, password);
         ProfileValidator.validatePasswordUpdate(profileDao.updatePassword(id, password.newPassword()), id);
+    }
+
+    @Transactional
+    public void addRoomToFavoriteProfile(IdFavorite id) {
+        ProfileValidator.validateRoomFromFavoriteNotExists(
+                profileDao.checkRoomFromFavoriteWithLock(id), id);
+        ProfileValidator.validateAddFromFavoriteResult(
+                profileDao.addRoomToFavorite(id), id);
+    }
+
+    @Transactional
+    public void deleteRoomFromFavoriteProfile(IdFavorite id) {
+        ProfileValidator.validateRoomFromFavoriteExists(
+                profileDao.checkRoomFromFavoriteWithLock(id), id);
+        ProfileValidator.validateDeleteFromFavoriteResult(
+                profileDao.deleteRoomFromFavorite(id), id);
+    }
+
+    public Rooms getRoomsFromFavoriteProfile(UUID id, Integer pageSize, Integer pageNumber) {
+        int pageSize1 =  Objects.requireNonNullElse(pageSize, AppConfig.getDefaultPageSize());
+        int pageNumber1 = Objects.requireNonNullElse(pageNumber, AppConfig.getDefaultPageNumber());
+        ProfileValidator.CheckPageParam(pageSize1);
+        ProfileValidator.CheckPageParam(pageNumber1);
+        RoomsEntity roomsEntity = profileDao.getAllRoomsFromFavorite(id, pageSize1, pageNumber1);
+        return new Rooms(roomsEntity.list.stream()
+                .map(roomMapper::toDomainRoom).toList());
     }
 }

@@ -99,7 +99,7 @@ public class ComfortController {
             @PathVariable UUID idRoom,
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
-        logger.info("Called addComfortToRoom");
+        logger.info("Called addComfortToRoom room by id = {}, ownerId = {}", idRoom, idProfile);
         service.addComfortToRoom(idComfort, idRoom, idProfile);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -113,7 +113,7 @@ public class ComfortController {
             @PathVariable UUID idRoom,
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
-        logger.info("Called deleteComfortToRoom");
+        logger.info("Called deleteComfortFromRoom room by id = {}, ownerId = {}", idRoom, idProfile);
         service.deleteComfortFromRoom(idComfort, idRoom, idProfile);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -125,7 +125,7 @@ public class ComfortController {
             @PathVariable UUID idRoom,
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
-        logger.info("Called getComfortToRoom");
+        logger.info("Called getComfortToRoom room by id = {}, ownerId = {}", idRoom, idProfile);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.getComfortFromRoom(idRoom, idProfile));
     }

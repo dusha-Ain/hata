@@ -3,6 +3,7 @@ package com.rent.hata.profile.dao;
 import com.rent.hata.data.TestData;
 import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
+import com.rent.hata.room.dao.RoomRowMapper;
 import com.rent.hata.web.exception.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,13 +55,16 @@ class ProfileDaoTest {
     @Autowired
     private ProfileRowMapper rowMapper;
 
+    @Autowired
+    private RoomRowMapper roomRowMapper;
+
     private final TestData testData = new TestData();
     private ProfileDao profileDao;
 
 
     @BeforeEach
     void setUp() {
-        profileDao = new ProfileDao(template, rowMapper);
+        profileDao = new ProfileDao(template, rowMapper, roomRowMapper);
     }
 
 

@@ -15,6 +15,7 @@ import com.rent.hata.web.exception.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,13 +26,12 @@ public class RoomService {
     private final RoomDao roomDao;
     private final RoomValidator roomValidator;
 
-    private final AppConfig appConfig;
-
-    public RoomService(RoomMapper mapper, RoomDao roomDao, RoomValidator roomValidator, AppConfig appConfig) {
+    public RoomService(RoomMapper mapper,
+                       RoomDao roomDao,
+                       RoomValidator roomValidator) {
         this.mapper = mapper;
         this.roomDao = roomDao;
         this.roomValidator = roomValidator;
-        this.appConfig = appConfig;
     }
 
 
@@ -71,8 +71,8 @@ public class RoomService {
 
 
     public Rooms getAllRoomsByFilter(RoomSearchFilter filter) {
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : appConfig.getDefaultPageSize();
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : appConfig.getGetDefaultPageNumber();
+        int pageSize =  Objects.requireNonNullElse(filter.pageSize(), AppConfig.getDefaultPageSize());
+        int pageNumber = Objects.requireNonNullElse(filter.pageNumber(), AppConfig.getDefaultPageNumber());
         RoomsEntity roomsEntity = roomDao.getAllRoomsByFilter(filter, pageSize, pageNumber);
         return new Rooms(roomsEntity.list.stream()
                 .map(mapper::toDomainRoom).toList());
