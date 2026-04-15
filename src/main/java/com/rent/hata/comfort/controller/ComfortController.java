@@ -2,6 +2,7 @@ package com.rent.hata.comfort.controller;
 
 import com.rent.hata.comfort.dto.Comfort;
 import com.rent.hata.comfort.dto.Comforts;
+import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.comfort.service.ComfortSearchFilter;
 import com.rent.hata.comfort.service.ComfortService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -100,8 +101,9 @@ public class ComfortController {
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
         logger.info("Called addComfortToRoom room by id = {}, ownerId = {}", idRoom, idProfile);
-        service.addComfortToRoom(idComfort, idRoom, idProfile);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        var id = new IdComfortRoom(idComfort, idRoom, idProfile);
+        service.addComfortToRoom(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @Operation(summary = "Удалить удобство из квартиры")
@@ -114,8 +116,9 @@ public class ComfortController {
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
         logger.info("Called deleteComfortFromRoom room by id = {}, ownerId = {}", idRoom, idProfile);
-        service.deleteComfortFromRoom(idComfort, idRoom, idProfile);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        var id = new IdComfortRoom(idComfort, idRoom, idProfile);
+        service.deleteComfortFromRoom(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @Operation(summary = "Получить удобства квартиры")
@@ -126,7 +129,7 @@ public class ComfortController {
             @Parameter(description = "Идентификатор профиля")
             @PathVariable UUID idProfile){
         logger.info("Called getComfortToRoom room by id = {}, ownerId = {}", idRoom, idProfile);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(service.getComfortFromRoom(idRoom, idProfile));
     }
 

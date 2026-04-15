@@ -6,6 +6,7 @@ import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
 import com.rent.hata.room.service.RoomMapper;
+import com.rent.hata.web.Pageable;
 import com.rent.hata.web.exception.BadCredentialsPasswordException;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.ValidationException;
@@ -189,8 +190,11 @@ class ProfileServiceTest {
      */
 
     @Test
-    void getAllProfilesShouldReturnAllProfiles() {
+    void getAllProfilesShouldReturnAllProfilesByFilter() {
         // given
+        var filter = new Pageable();
+        filter.setPageSize(10);
+        filter.setPageNumber(1);
         ProfileEntity entity1 = testData.createTestProfileEntityWithId();
         ProfileEntity entity2 = testData.createTestProfileEntityWithId();
         ProfileEntity entity3 = testData.createTestProfileEntityWithId();
@@ -201,34 +205,37 @@ class ProfileServiceTest {
         Profile profile2 = testData.createTestProfile();
         Profile profile3 = testData.createTestProfile();
 
-        when(profileDao.getAll()).thenReturn(profilesEntity);
+        when(profileDao.getAllByFilter(filter)).thenReturn(profilesEntity);
         when(mapper.toDomainProfile(entity1)).thenReturn(profile1);
         when(mapper.toDomainProfile(entity2)).thenReturn(profile2);
         when(mapper.toDomainProfile(entity3)).thenReturn(profile3);
 
         // when
-        Profiles result = profileService.getAllProfiles();
+        Profiles result = profileService.getAllProfilesByFilter(filter);
 
         // then
         assertThat(result.list).hasSize(3);
         assertThat(result.list).containsExactly(profile1, profile2, profile3);
-        verify(profileDao).getAll();
+        verify(profileDao).getAllByFilter(filter);
         verify(mapper, times(3)).toDomainProfile(any(ProfileEntity.class));
     }
 
 
     @Test
-    void getAllProfilesShouldReturnEmptyListWhenNoProfiles() {
+    void getAllProfilesShouldReturnEmptyListWhenNoProfilesByFilter() {
         // given
+        var filter = new Pageable();
+        filter.setPageSize(10);
+        filter.setPageNumber(1);
         ProfilesEntity emptyList = new ProfilesEntity(List.of());
-        when(profileDao.getAll()).thenReturn(emptyList);
+        when(profileDao.getAllByFilter(filter)).thenReturn(emptyList);
 
         // when
-        Profiles result = profileService.getAllProfiles();
+        Profiles result = profileService.getAllProfilesByFilter(filter);
 
         // then
         assertThat(result.list).isEmpty();
-        verify(profileDao).getAll();
+        verify(profileDao).getAllByFilter(filter);
         verify(mapper, never()).toDomainProfile(any());
     }
 

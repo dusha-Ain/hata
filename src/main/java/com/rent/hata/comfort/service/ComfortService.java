@@ -3,13 +3,16 @@ package com.rent.hata.comfort.service;
 import com.rent.hata.comfort.dao.ComfortDao;
 import com.rent.hata.comfort.dto.Comfort;
 import com.rent.hata.comfort.dto.Comforts;
+import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.comfort.entity.ComfortEntity;
 import com.rent.hata.comfort.entity.ComfortsEntity;
 import com.rent.hata.web.AppConfig;
+import com.rent.hata.web.Pageable;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -44,9 +47,10 @@ public class ComfortService {
     }
 
     public Comforts getAllComfortsByFilter(ComfortSearchFilter filter) {
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : AppConfig.getDefaultPageSize();
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : AppConfig.getDefaultPageNumber();
-        var comfortsEntity = comfortDao.getAllComfortsByFilter(filter, pageSize, pageNumber);
+        var pageable = new Pageable();
+        pageable.setPageSize(Objects.requireNonNullElse(filter.pageSize(), AppConfig.getDefaultPageSize()));
+        pageable.setPageNumber(Objects.requireNonNullElse(filter.pageNumber(), AppConfig.getDefaultPageNumber()));
+        var comfortsEntity = comfortDao.getAllComfortsByFilter(filter, pageable);
         return new Comforts(comfortsEntity.list.stream()
                 .map(mapper::toDomainComfort).toList());
     }
@@ -71,19 +75,19 @@ public class ComfortService {
 
 
     @Transactional
-    public void addComfortToRoom(UUID idComfort, UUID idRoom, UUID idProfile) {
+    public void addComfortToRoom(IdComfortRoom id) {
         ComfortValidator.validateComfortFromRoomNotExists(
-                comfortDao.checkComfortFromRoomWithLock(idComfort, idRoom, idProfile), idComfort, idRoom);
+                comfortDao.checkComfortFromRoomWithLock(id), id);
         ComfortValidator.validateAddFromRoomResult(
-                comfortDao.addComfortToRoom(idComfort, idRoom, idProfile), idComfort, idRoom);
+                comfortDao.addComfortToRoom(id), id);
     }
 
     @Transactional
-    public void deleteComfortFromRoom(UUID idComfort, UUID idRoom, UUID idProfile) {
+    public void deleteComfortFromRoom(IdComfortRoom id) {
         ComfortValidator.validateComfortFromRoomExists(
-                comfortDao.checkComfortFromRoomWithLock(idComfort, idRoom, idProfile), idComfort, idRoom);
+                comfortDao.checkComfortFromRoomWithLock(id), id);
         ComfortValidator.validateDeleteFromRoomResult(
-                comfortDao.deleteComfortFromRoom(idComfort, idRoom, idProfile), idComfort, idProfile);
+                comfortDao.deleteComfortFromRoom(id), id);
     }
 
     public Comforts getComfortFromRoom(UUID idRoom, UUID idProfile) {

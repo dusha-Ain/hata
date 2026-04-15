@@ -10,7 +10,7 @@ spring:
   application:
     name: hata
   datasource:
-    url: jdbc:postgresql://localhost:5432/hata
+    url: jdbc:postgresql://localhost:5434/hata
     username: hata
     password: hata
     driver-class-name: org.postgresql.Driver
@@ -20,4 +20,4 @@ spring:
 default:
   page:
     size: 5
-    number: 0
+    number: 1

@@ -12,25 +12,27 @@ import java.util.UUID;
 @Component
 public class RoomValidator {
 
-    public void checkNotNull(Object obj) {
+    private RoomValidator() {}
+
+    public static void checkNotNull(Object obj) {
         if (obj == null) {
             throw new ValidationException("Data should be not null");
         }
     }
 
-    public RoomEntity checkRoomExists(Optional<RoomEntity> room, Object idf) {
+    public static RoomEntity checkRoomExists(Optional<RoomEntity> room, Object idf) {
         return room.orElseThrow(() -> new EntityNotFoundException(
                 String.format("Room not found by %s = %s", getIdentifierType(idf), idf)
         ));
     }
 
-    public AddressEntity checkAddressExists(Optional<AddressEntity> address, Object idf) {
+    public static AddressEntity checkAddressExists(Optional<AddressEntity> address, Object idf) {
         return address.orElseThrow(() -> new EntityNotFoundException(
                 String.format("Address not found by %s = %s", getIdentifierType(idf), idf)
         ));
     }
 
-    public AddressEntity checkAddressExistsInternal(Optional<AddressEntity> address,
+    public static AddressEntity checkAddressExistsInternal(Optional<AddressEntity> address,
                                                     Object idf,
                                                     Operation command) {
         return address.orElseThrow(() -> new EntityNotFoundInternalException(
@@ -42,7 +44,7 @@ public class RoomValidator {
     }
 
 
-    public RoomEntity checkRoomExistsInternal(Optional<RoomEntity> room,
+    public static RoomEntity checkRoomExistsInternal(Optional<RoomEntity> room,
                                               Object idf,
                                               Operation command) {
         return room.orElseThrow(() -> new EntityNotFoundInternalException(
@@ -53,7 +55,7 @@ public class RoomValidator {
         ));
     }
 
-    public void validateRoomUpdate(boolean operationResult, Object idf) {
+    public static void validateRoomUpdate(boolean operationResult, Object idf) {
         if (!operationResult) {
             throw new InternalUpdateException(
                     String.format("Room update by %s = %s failed", getIdentifierType(idf), idf)
@@ -61,7 +63,7 @@ public class RoomValidator {
         }
     }
 
-    public void validateAddressUpdate(boolean operationResult, Object idf) {
+    public static void validateAddressUpdate(boolean operationResult, Object idf) {
         if (!operationResult) {
             throw new InternalUpdateException(
                     String.format("Address update by %s = %s failed", getIdentifierType(idf), idf)
@@ -69,19 +71,19 @@ public class RoomValidator {
         }
     }
 
-    public void validateRoomCreate(boolean operationResult) {
+    public static void validateRoomCreate(boolean operationResult) {
         if (!operationResult) {
             throw new ValidationException("Room create failed");
         }
     }
 
-    public void validateAddressCreate(boolean operationResult) {
+    public static void validateAddressCreate(boolean operationResult) {
         if (!operationResult) {
             throw new ValidationException("Address create failed");
         }
     }
 
-    public void validateRoomDelete(boolean operationResult, Object idf) {
+    public static void validateRoomDelete(boolean operationResult, Object idf) {
         if (!operationResult) {
             throw new InternalDeleteException(
                     String.format("Room delete by %s = %s failed", getIdentifierType(idf), idf)
@@ -89,7 +91,7 @@ public class RoomValidator {
         }
     }
 
-    public void validateAddressDelete(boolean operationResult, Object idf) {
+    public static void validateAddressDelete(boolean operationResult, Object idf) {
         if (!operationResult) {
             throw new InternalDeleteException(
                     String.format("Address delete by %s = %s failed", getIdentifierType(idf), idf)
@@ -98,7 +100,7 @@ public class RoomValidator {
     }
 
 
-    private String getIdentifierType(Object identifier) {
+    private static String getIdentifierType(Object identifier) {
         return identifier instanceof UUID ? "id" : "address";
     }
 }

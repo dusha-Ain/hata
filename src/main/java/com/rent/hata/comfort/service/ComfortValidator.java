@@ -1,6 +1,7 @@
 package com.rent.hata.comfort.service;
 
 
+import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.comfort.entity.ComfortEntity;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.EntityNotFoundInternalException;
@@ -14,6 +15,8 @@ import java.util.UUID;
 
 @Component
 public class ComfortValidator {
+
+    private ComfortValidator() {}
 
     public static void checkNotNull(Object obj) {
         if (obj == null) {
@@ -80,31 +83,31 @@ public class ComfortValidator {
         }
     }
 
-    public static void validateComfortFromRoomExists(boolean check, UUID idComfort, UUID idRoom){
+    public static void validateComfortFromRoomExists(boolean check, IdComfortRoom id){
         if (!check) {
             throw new ValidationException(
-                    String.format("Comfort = %s not found from room by id = %s", idComfort, idRoom));
+                    String.format("Comfort = %s not found from room by id = %s", id.idComfort(), id.idRoom()));
         }
     }
 
-    public static void validateComfortFromRoomNotExists(boolean check, UUID idComfort, UUID idRoom){
+    public static void validateComfortFromRoomNotExists(boolean check, IdComfortRoom id){
         if (check) {
             throw new ValidationException(
-                    String.format("Comfort = %s already exist from room by id = %s", idComfort, idRoom));
+                    String.format("Comfort = %s already exist from room by id = %s", id.idComfort(), id.idRoom()));
         }
     }
 
-    public static void validateDeleteFromRoomResult(boolean delete, UUID idComfort, UUID idRoom) {
+    public static void validateDeleteFromRoomResult(boolean delete, IdComfortRoom id) {
         if (!delete) {
             throw new ValidationException(
-                    String.format("Comfort = %s delete from room failed by id = %s", idComfort, idRoom));
+                    String.format("Comfort = %s delete from room failed by id = %s", id.idComfort(), id.idRoom()));
         }
     }
 
-    public static void validateAddFromRoomResult(boolean add, UUID idComfort, UUID idRoom) {
+    public static void validateAddFromRoomResult(boolean add, IdComfortRoom id) {
         if (!add) {
             throw new ValidationException(
-                    String.format("Comfort = %s add from room failed by id = %s", idComfort, idRoom));
+                    String.format("Comfort = %s add from room failed by id = %s", id.idComfort(), id.idRoom()));
         }
     }
 

@@ -53,7 +53,7 @@ public class RoomController {
 
     @Operation(summary = "Показать все квартиры")
     @GetMapping("/")
-    public ResponseEntity<Rooms> getAllRooms(
+    public ResponseEntity<Rooms> getAllRoomsByFilter(
             @Parameter(description = "Цена аренды")
             @RequestParam(name = "price", required = false) Integer price,
 

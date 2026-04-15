@@ -11,6 +11,7 @@ import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.web.AppConfig;
+import com.rent.hata.web.Pageable;
 import com.rent.hata.web.exception.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,14 +25,11 @@ public class RoomService {
 
     private final RoomMapper mapper;
     private final RoomDao roomDao;
-    private final RoomValidator roomValidator;
 
     public RoomService(RoomMapper mapper,
-                       RoomDao roomDao,
-                       RoomValidator roomValidator) {
+                       RoomDao roomDao) {
         this.mapper = mapper;
         this.roomDao = roomDao;
-        this.roomValidator = roomValidator;
     }
 
 
@@ -40,17 +38,18 @@ public class RoomService {
         AddressEntity address = mapper.toEntity(room.address());
         Optional<RoomEntity> maybeRoom = roomDao.getRoomByAddressWithLock(address);
         if (maybeRoom.isPresent()) {
-            throw new ValidationException(String.format("Room with address = %s already exist", address.fullAddress()));
+            throw new ValidationException(
+                    String.format("Room with address = %s already exist", address.fullAddress()));
         }
         var roomEntity = mapper.toEntity(room);
-        roomValidator.validateAddressCreate(roomDao.createAddress(address));
-        AddressEntity savedAddress = roomValidator.checkAddressExistsInternal(
+        RoomValidator.validateAddressCreate(roomDao.createAddress(address));
+        AddressEntity savedAddress = RoomValidator.checkAddressExistsInternal(
                 roomDao.getAddressByAddressWithLock(address),
                 address,
                 Operation.CREATE
         );
-        roomValidator.validateRoomCreate(roomDao.createRoom(roomEntity, savedAddress.getId()));
-        var savedRoom = roomValidator.checkRoomExistsInternal(
+        RoomValidator.validateRoomCreate(roomDao.createRoom(roomEntity, savedAddress.getId()));
+        var savedRoom = RoomValidator.checkRoomExistsInternal(
                 roomDao.getRoomByAddress(savedAddress),
                 savedAddress,
                 Operation.CREATE
@@ -61,19 +60,19 @@ public class RoomService {
 
     @Transactional
     public RoomDetails getRoomById(UUID id) {
-        var room = roomValidator.checkRoomExists(roomDao.getRoomById(id), id);
-        var address = roomValidator.checkAddressExists(
+        var room = RoomValidator.checkRoomExists(roomDao.getRoomById(id), id);
+        var address = RoomValidator.checkAddressExists(
                 roomDao.getAddressById(room.getIdAddress()),
                 room.getIdAddress()
         );
         return mapper.toDomainRoomDetails(room, address);
     }
 
-
     public Rooms getAllRoomsByFilter(RoomSearchFilter filter) {
-        int pageSize =  Objects.requireNonNullElse(filter.pageSize(), AppConfig.getDefaultPageSize());
-        int pageNumber = Objects.requireNonNullElse(filter.pageNumber(), AppConfig.getDefaultPageNumber());
-        RoomsEntity roomsEntity = roomDao.getAllRoomsByFilter(filter, pageSize, pageNumber);
+        var pageable = new Pageable();
+        pageable.setPageSize(Objects.requireNonNullElse(filter.pageSize(), AppConfig.getDefaultPageSize()));
+        pageable.setPageNumber(Objects.requireNonNullElse(filter.pageNumber(), AppConfig.getDefaultPageNumber()));
+        RoomsEntity roomsEntity = roomDao.getAllRoomsByFilter(filter, pageable);
         return new Rooms(roomsEntity.list.stream()
                 .map(mapper::toDomainRoom).toList());
     }
@@ -81,10 +80,10 @@ public class RoomService {
 
     @Transactional
     public RoomUpdate updateRoomById(UUID id, RoomUpdate room) {
-        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        var maybeRoom = RoomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
         var roomUpdate = mapper.toEntity(maybeRoom, room);
-        roomValidator.validateRoomUpdate(roomDao.updateRoom(roomUpdate), id);
-        var savedRoom = roomValidator.checkRoomExistsInternal(
+        RoomValidator.validateRoomUpdate(roomDao.updateRoom(roomUpdate), id);
+        var savedRoom = RoomValidator.checkRoomExistsInternal(
                 roomDao.getRoomById(id),
                 id,
                 Operation.UPDATE
@@ -95,14 +94,14 @@ public class RoomService {
 
     @Transactional
     public Address updateRoomAddressById(UUID id, Address address) {
-        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        var maybeRoom = RoomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
         UUID idAddress = maybeRoom.getIdAddress();
-        var maybeAddress = roomValidator.checkAddressExists(
+        var maybeAddress = RoomValidator.checkAddressExists(
                 roomDao.getAddressByIdWithLock(idAddress), idAddress
         );
         var addressUpdate = mapper.toEntity(maybeAddress, address);
-        roomValidator.validateAddressUpdate(roomDao.updateRoomAddress(addressUpdate), id);
-        var savedAddress = roomValidator.checkAddressExistsInternal(
+        RoomValidator.validateAddressUpdate(roomDao.updateRoomAddress(addressUpdate), id);
+        var savedAddress = RoomValidator.checkAddressExistsInternal(
                 roomDao.getAddressById(idAddress),
                 idAddress,
                 Operation.UPDATE
@@ -113,23 +112,23 @@ public class RoomService {
 
     @Transactional
     public void deleteRoomById(UUID id) {
-        var maybeRoom = roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
-        var maybeAddress = roomValidator.checkAddressExists(
+        var maybeRoom = RoomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        var maybeAddress = RoomValidator.checkAddressExists(
                 roomDao.getAddressByIdWithLock(maybeRoom.getIdAddress()), id
         );
-        roomValidator.validateRoomDelete(roomDao.deleteRoom(id), id);
-        roomValidator.validateAddressDelete(
+        RoomValidator.validateRoomDelete(roomDao.deleteRoom(id), id);
+        RoomValidator.validateAddressDelete(
                 roomDao.deleteAddress(maybeAddress.getId()), maybeAddress.getId()
         );
     }
 
     public void increaseViews(UUID id) {
-        roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
-        roomValidator.validateRoomUpdate(roomDao.increaseRoomViews(id), id);
+        RoomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        RoomValidator.validateRoomUpdate(roomDao.increaseRoomViews(id), id);
     }
 
     public void changeStatusRoomById(UUID id, RoomStatus status) {
-        roomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
-        roomValidator.validateRoomUpdate(roomDao.changeRoomStatus(id, status), id);
+        RoomValidator.checkRoomExists(roomDao.getRoomByIdWithLock(id), id);
+        RoomValidator.validateRoomUpdate(roomDao.changeRoomStatus(id, status), id);
     }
 }

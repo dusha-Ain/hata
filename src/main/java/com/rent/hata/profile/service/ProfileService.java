@@ -3,10 +3,14 @@ package com.rent.hata.profile.service;
 import com.rent.hata.profile.dao.ProfileDao;
 import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
+import com.rent.hata.profile.entity.ProfilesEntity;
 import com.rent.hata.room.dto.Rooms;
 import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.room.service.RoomMapper;
+import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
+import com.rent.hata.roommate_request.service.RoommateRequestValidator;
 import com.rent.hata.web.AppConfig;
+import com.rent.hata.web.Pageable;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +36,7 @@ public class ProfileService {
 
     @Transactional
     public Profile addProfile(ProfileSecurity profile) {
-        Optional<ProfileEntity> maybeGuest =
-                profileDao.getProfileByPhoneWithLock(profile.phone());
+        Optional<ProfileEntity> maybeGuest = profileDao.getProfileByPhoneWithLock(profile.phone());
         ProfileValidator.validateForCreate(profile, maybeGuest);
         var profileEntity = mapper.toEntity(profile);
         ProfileValidator.validateProfileCreate(profileDao.createProfile(profileEntity));
@@ -44,14 +47,16 @@ public class ProfileService {
 
 
     public Profile getById(UUID id) {
-        ProfileEntity findProfile =
-                ProfileValidator.checkProfileExists(profileDao.getById(id), id);
+        ProfileEntity findProfile = ProfileValidator.checkProfileExists(
+                profileDao.getById(id), id);
         return mapper.toDomainProfile(findProfile);
     }
 
 
-    public Profiles getAllProfiles() {
-        var profilesEntity = profileDao.getAll();
+    public Profiles getAllProfilesByFilter(Pageable filter) {
+        filter.setPageSize(Objects.requireNonNullElse(filter.getPageSize(), AppConfig.getDefaultPageSize()));
+        filter.setPageNumber(Objects.requireNonNullElse(filter.getPageNumber(), AppConfig.getDefaultPageNumber()));
+        var profilesEntity = profileDao.getAllByFilter(filter);
         return new Profiles(profilesEntity.list.stream()
                 .map(mapper::toDomainProfile).toList());
     }
@@ -101,12 +106,50 @@ public class ProfileService {
     }
 
     public Rooms getRoomsFromFavoriteProfile(UUID id, Integer pageSize, Integer pageNumber) {
-        int pageSize1 =  Objects.requireNonNullElse(pageSize, AppConfig.getDefaultPageSize());
-        int pageNumber1 = Objects.requireNonNullElse(pageNumber, AppConfig.getDefaultPageNumber());
-        ProfileValidator.CheckPageParam(pageSize1);
-        ProfileValidator.CheckPageParam(pageNumber1);
-        RoomsEntity roomsEntity = profileDao.getAllRoomsFromFavorite(id, pageSize1, pageNumber1);
+        var filter = new Pageable();
+        filter.setPageSize(Objects.requireNonNullElse(pageSize, AppConfig.getDefaultPageSize()));
+        filter.setPageNumber(Objects.requireNonNullElse(pageNumber, AppConfig.getDefaultPageNumber()));
+        ProfileValidator.CheckPageParams(filter);
+        RoomsEntity roomsEntity = profileDao.getAllRoomsFromFavorite(id, filter);
         return new Rooms(roomsEntity.list.stream()
                 .map(roomMapper::toDomainRoom).toList());
+    }
+
+    @Transactional
+    public void addProfileToRequest(UUID idProfile, UUID idRequest) {
+        var maybeProfile = ProfileValidator.checkProfileExists(
+                profileDao.getByIdWithLock(idProfile), idProfile);
+        RoommateRequestEntity findRequest =
+                RoommateRequestValidator.validateRequestCheckExists(
+                        profileDao.getRequestByIdWithLock(idRequest), idRequest);
+        RoommateRequestValidator.checkStatusOpen(findRequest.getStatus());
+        ProfileValidator.validateProfileFromRequestNotExists(
+                profileDao.checkProfileFromRequestWithLock(idProfile, idRequest),
+                idProfile, idRequest);
+        ProfileValidator.validateAddFromRequestResult(
+                profileDao.addProfileToRequest(idProfile, idRequest),
+                idProfile, idRequest);
+    }
+
+    @Transactional
+    public void deleteProfileFromRequest(UUID idProfile, UUID idRequest) {
+        var maybeProfile = ProfileValidator.checkProfileExists(
+                profileDao.getByIdWithLock(idProfile), idProfile);
+        RoommateRequestEntity findRequest =
+                RoommateRequestValidator.validateRequestCheckExists(
+                        profileDao.getRequestByIdWithLock(idRequest), idRequest);
+        RoommateRequestValidator.checkStatusOpen(findRequest.getStatus());
+        ProfileValidator.validateProfileFromRequestExists(
+                profileDao.checkProfileFromRequestWithLock(idProfile, idRequest),
+                idProfile, idRequest);
+        ProfileValidator.validateDeleteFromRequestResult(
+                profileDao.deleteProfileFromRequest(idProfile, idRequest),
+                idProfile, idRequest);
+    }
+
+    public Profiles getProfilesFromRequest(UUID idRequest) {
+        ProfilesEntity profilesEntity = profileDao.getAllProfilesFromRequest(idRequest);
+        return new Profiles(profilesEntity.list.stream()
+                .map(mapper::toDomainProfile).toList());
     }
 }

@@ -5,6 +5,7 @@ import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.room.service.RoomSearchFilter;
+import com.rent.hata.web.Pageable;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -149,7 +150,7 @@ public class RoomDao {
     }
 
     public RoomsEntity getAllRoomsByFilter(RoomSearchFilter filter,
-                                           int pageSize, int pageNumber) {
+                                           Pageable pageable) {
         String sql = """
                 SELECT r.*
                 FROM room AS r
@@ -169,8 +170,8 @@ public class RoomDao {
                 .addValue("city",  filter.address() != null ? filter.address().city() : null)
                 .addValue("street",  filter.address() != null ? filter.address().street() : null)
                 .addValue("houseNumber",  filter.address() != null ? filter.address().houseNumber() : null)
-                .addValue("limit", pageSize)
-                .addValue("offset", pageNumber * pageSize);
+                .addValue("limit", pageable.getPageSize())
+                .addValue("offset", (pageable.getPageNumber() - 1) * pageable.getPageSize());
         return new RoomsEntity(template.query(sql, map, roomRowMapper));
     }
 

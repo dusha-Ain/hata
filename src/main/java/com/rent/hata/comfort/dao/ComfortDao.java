@@ -1,9 +1,11 @@
 package com.rent.hata.comfort.dao;
 
+import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.comfort.entity.ComfortEntity;
 import com.rent.hata.comfort.entity.ComfortsEntity;
 import com.rent.hata.comfort.service.ComfortSearchFilter;
 import com.rent.hata.comfort.service.ComfortValidator;
+import com.rent.hata.web.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,7 +20,8 @@ public class ComfortDao {
     private final NamedParameterJdbcTemplate template;
     private final ComfortRowMapper rowMapper;
 
-    public ComfortDao(NamedParameterJdbcTemplate template, ComfortRowMapper comfortRowMapper) {
+    public ComfortDao(NamedParameterJdbcTemplate template,
+                      ComfortRowMapper comfortRowMapper) {
         this.template = template;
         this.rowMapper = comfortRowMapper;
     }
@@ -52,7 +55,7 @@ public class ComfortDao {
     }
 
     public ComfortsEntity getAllComfortsByFilter(
-            ComfortSearchFilter filter, int pageSize, int pageNumber) {
+            ComfortSearchFilter filter, Pageable pageable) {
         String sql = """
                 SELECT *
                 FROM comfort AS c
@@ -61,8 +64,8 @@ public class ComfortDao {
                 """;
         var map = new MapSqlParameterSource()
                 .addValue("title", filter.tittle())
-                .addValue("limit", pageSize)
-                .addValue("offset", pageNumber * pageSize);
+                .addValue("limit", pageable.getPageSize())
+                .addValue("offset", (pageable.getPageNumber() - 1) * pageable.getPageSize());
         return new ComfortsEntity(template.query(sql, map, rowMapper));
     }
 
@@ -98,7 +101,7 @@ public class ComfortDao {
         return 1 == template.update(sql, new MapSqlParameterSource("id", id));
     }
 
-    public boolean checkComfortFromRoomWithLock(UUID idComfort, UUID idRoom, UUID idProfile) {
+    public boolean checkComfortFromRoomWithLock(IdComfortRoom id) {
         String sql = """
                 SELECT EXISTS (
                     SELECT 1
@@ -109,25 +112,25 @@ public class ComfortDao {
                 ) FOR UPDATE
                 """;
         var map = new MapSqlParameterSource()
-                .addValue("idRoom", idRoom)
-                .addValue("idProfile", idProfile)
-                .addValue("idComfort", idComfort);
+                .addValue("idRoom", id.idRoom())
+                .addValue("idProfile", id.idProfile())
+                .addValue("idComfort", id.idComfort());
         return Boolean.TRUE.equals(template.queryForObject(sql, map, Boolean.class));
     }
 
-    public boolean addComfortToRoom(UUID idComfort, UUID idRoom, UUID idProfile) {
+    public boolean addComfortToRoom(IdComfortRoom id) {
         String sql = """
                 INSERT INTO room_comfort(id_room, id_profile, id_comfort)
                 VALUES(:idRoom, :idProfile, :idComfort)
                 """;
         var map = new MapSqlParameterSource()
-                .addValue("idRoom", idRoom)
-                .addValue("idProfile", idProfile)
-                .addValue("idComfort", idComfort);
+                .addValue("idRoom", id.idRoom())
+                .addValue("idProfile", id.idProfile())
+                .addValue("idComfort", id.idComfort());
         return 1 == template.update(sql, map);
     }
 
-    public boolean deleteComfortFromRoom(UUID idComfort, UUID idRoom, UUID idProfile) {
+    public boolean deleteComfortFromRoom(IdComfortRoom id) {
         String sql = """
                 DELETE FROM room_comfort
                 WHERE id_room=:idRoom
@@ -135,9 +138,9 @@ public class ComfortDao {
                   AND id_comfort=:idComfort
                 """;
         var map = new MapSqlParameterSource()
-                .addValue("idRoom", idRoom)
-                .addValue("idProfile", idProfile)
-                .addValue("idComfort", idComfort);
+                .addValue("idRoom", id.idRoom())
+                .addValue("idProfile", id.idProfile())
+                .addValue("idComfort", id.idComfort());
         return 1 == template.update(sql, map);
     }
 

@@ -1,9 +1,11 @@
 package com.rent.hata.profile.service;
 
+import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.profile.dto.IdFavorite;
 import com.rent.hata.profile.dto.ProfilePassword;
 import com.rent.hata.profile.dto.ProfileSecurity;
 import com.rent.hata.profile.entity.ProfileEntity;
+import com.rent.hata.web.Pageable;
 import com.rent.hata.web.exception.BadCredentialsPasswordException;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.ValidationException;
@@ -14,6 +16,8 @@ import java.util.UUID;
 
 @Component
 public class ProfileValidator {
+
+    private ProfileValidator() {}
 
     public static void validateForCreate(ProfileSecurity profile, Optional<ProfileEntity> existingProfile) {
         if (existingProfile.isPresent()) {
@@ -114,10 +118,37 @@ public class ProfileValidator {
         }
     }
 
-    public static void CheckPageParam(int param){
-        if (param < 0) {
+    public static void CheckPageParams(Pageable pageable){
+        if (pageable.getPageSize() < 0 || pageable.getPageNumber() < 0) {
             throw new ValidationException("Page param must be positive");
         }
     }
 
+    public static void validateProfileFromRequestExists(boolean check, UUID idProfile, UUID idRequest){
+        if (!check) {
+            throw new ValidationException(
+                    String.format("Profile = %s not found from request by id = %s", idProfile, idRequest));
+        }
+    }
+
+    public static void validateProfileFromRequestNotExists(boolean check, UUID idProfile, UUID idRequest) {
+        if (check) {
+            throw new ValidationException(
+                    String.format("Profile = %s already exists from request by id = %s", idProfile, idRequest));
+        }
+    }
+
+    public static void validateAddFromRequestResult(boolean add, UUID idProfile, UUID idRequest) {
+        if (!add){
+            throw new ValidationException(
+                    String.format("Profile = %s add from request failed by id = %s", idProfile, idRequest));
+        }
+    }
+
+    public static void validateDeleteFromRequestResult(boolean delete, UUID idProfile, UUID idRequest) {
+        if (!delete) {
+            throw new ValidationException(
+                    String.format("Profile = %s delete from request failed by id = %s", idProfile, idRequest));
+        }
+    }
 }

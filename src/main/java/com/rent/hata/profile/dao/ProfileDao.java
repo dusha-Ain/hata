@@ -6,6 +6,10 @@ import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
 import com.rent.hata.room.dao.RoomRowMapper;
 import com.rent.hata.room.entity.RoomsEntity;
+import com.rent.hata.roommate_request.dao.RoommateRequestRowMapper;
+import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
+import com.rent.hata.roommate_request.service.RoommateRequestValidator;
+import com.rent.hata.web.Pageable;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,11 +26,16 @@ public class ProfileDao {
     private final NamedParameterJdbcTemplate template;
     private final ProfileRowMapper rowMapper;
     private final RoomRowMapper roomRowMapper;
+    public final RoommateRequestRowMapper requestRowMapper;
 
-    public ProfileDao(NamedParameterJdbcTemplate template, ProfileRowMapper rowMapper, RoomRowMapper roomRowMapper) {
+    public ProfileDao(NamedParameterJdbcTemplate template,
+                      ProfileRowMapper rowMapper,
+                      RoomRowMapper roomRowMapper,
+                      RoommateRequestRowMapper requestRowMapper) {
         this.template = template;
         this.rowMapper = rowMapper;
         this.roomRowMapper = roomRowMapper;
+        this.requestRowMapper = requestRowMapper;
     }
 
 
@@ -115,9 +124,13 @@ public class ProfileDao {
     }
 
 
-    public ProfilesEntity getAll() {
-        String sql = "SELECT * FROM profile";
-        return new ProfilesEntity(template.query(sql, rowMapper));
+    public ProfilesEntity getAllByFilter(Pageable filter) {
+        String sql = "SELECT * FROM profile LIMIT :limit OFFSET :offset";
+        var map = new MapSqlParameterSource()
+                .addValue("limit", filter.getPageSize())
+                .addValue("offset", (filter.getPageNumber() - 1) * filter.getPageSize());
+
+        return new ProfilesEntity(template.query(sql, map, rowMapper));
     }
 
 
@@ -185,7 +198,7 @@ public class ProfileDao {
         return 1 == template.update(sql, map);
     }
 
-    public RoomsEntity getAllRoomsFromFavorite(UUID id, Integer pageSize, Integer pageNumber) {
+    public RoomsEntity getAllRoomsFromFavorite(UUID id, Pageable filter) {
         String sql = """
                 SELECT r.*
                 FROM room AS r
@@ -195,8 +208,8 @@ public class ProfileDao {
                 """;
         var map = new MapSqlParameterSource()
                 .addValue("id", id)
-                .addValue("limit", pageSize)
-                .addValue("offset", pageNumber * pageSize);
+                .addValue("limit", filter.getPageSize())
+                .addValue("offset", (filter.getPageNumber() - 1) * filter.getPageSize());
         return new RoomsEntity(template.query(sql, map, roomRowMapper));
     }
 
@@ -215,5 +228,63 @@ public class ProfileDao {
                 .addValue("idProfile", id.idProfile())
                 .addValue("idOwner", id.idOwner());
         return Boolean.TRUE.equals(template.queryForObject(sql, map, Boolean.class));
+    }
+
+    public boolean checkProfileFromRequestWithLock(UUID idProfile, UUID idRequest) {
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM profile_roommate_request
+                    WHERE id_profile =:idProfile AND id_roommate=:idRequest
+                ) FOR UPDATE
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("idProfile", idProfile)
+                .addValue("idRequest", idRequest);
+        return Boolean.TRUE.equals(template.queryForObject(sql, map, Boolean.class));
+    }
+
+    public boolean addProfileToRequest(UUID idProfile, UUID idRequest) {
+        String sql = """
+                INSERT INTO profile_roommate_request(id_profile, id_roommate)
+                VALUES(:idProfile, :idRequest)
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("idProfile", idProfile)
+                .addValue("idRequest", idRequest);
+        return 1 == template.update(sql, map);
+    }
+
+    public boolean deleteProfileFromRequest(UUID idProfile, UUID idRequest) {
+        String sql = """
+                DELETE FROM profile_roommate_request
+                WHERE id_profile=:idProfile AND id_roommate=:idRequest
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("idProfile", idProfile)
+                .addValue("idRequest", idRequest);
+        return 1 == template.update(sql, map);
+    }
+
+    public ProfilesEntity getAllProfilesFromRequest(UUID idRequest) {
+        String sql = """
+                SELECT pr.*
+                FROM profile_roommate_request AS p
+                JOIN profile AS pr ON p.id_profile=pr.id
+                WHERE p.id_roommate=:idRequest
+                ORDER BY pr.last_name
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("idRequest", idRequest);
+        return new ProfilesEntity(template.query(sql, map, rowMapper));
+    }
+
+    public Optional<RoommateRequestEntity> getRequestByIdWithLock(UUID id) {
+        String sqlLock = "SELECT * FROM roommate_request WHERE id = :id FOR UPDATE";
+        List<RoommateRequestEntity> request =
+                template.query(sqlLock,
+                        new MapSqlParameterSource("id", id),
+                        requestRowMapper);
+        return RoommateRequestValidator.validateIdSearchResult(request, id);
     }
 }
