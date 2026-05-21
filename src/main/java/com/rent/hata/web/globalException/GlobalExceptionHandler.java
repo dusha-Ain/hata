@@ -1,4 +1,4 @@
-package com.rent.hata.web;
+package com.rent.hata.web.globalException;
 
 import com.rent.hata.web.exception.*;
 import org.slf4j.Logger;

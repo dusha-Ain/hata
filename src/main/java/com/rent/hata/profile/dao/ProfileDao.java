@@ -9,7 +9,7 @@ import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.roommate_request.dao.RoommateRequestRowMapper;
 import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
 import com.rent.hata.roommate_request.service.RoommateRequestValidator;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -286,5 +286,18 @@ public class ProfileDao {
                         new MapSqlParameterSource("id", id),
                         requestRowMapper);
         return RoommateRequestValidator.validateIdSearchResult(request, id);
+    }
+
+    public boolean existsById(UUID id) {
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM profile
+                    WHERE id=:id
+                )
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("id", id);
+        return Boolean.TRUE.equals(template.queryForObject(sql, map, Boolean.class));
     }
 }

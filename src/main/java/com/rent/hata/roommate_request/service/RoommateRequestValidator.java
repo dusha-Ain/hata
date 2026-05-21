@@ -2,7 +2,7 @@ package com.rent.hata.roommate_request.service;
 
 import com.rent.hata.roommate_request.dto.enums.RequestStatus;
 import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import com.rent.hata.web.exception.EntityNotFoundInternalException;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import com.rent.hata.web.exception.ValidationException;
