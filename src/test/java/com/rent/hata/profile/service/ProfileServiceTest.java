@@ -49,7 +49,7 @@ class ProfileServiceTest {
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(profileDao, mapper, roomMapper);
+        profileService = new ProfileService(profileDao, mapper, roomMapper, null);
     }
 
 

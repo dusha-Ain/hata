@@ -29,7 +29,7 @@ public class UserValidationConsumer {
     }
 
     @KafkaListener(topics = "user-validation-requests", groupId = "main-app")
-    public void handleValidationRequest(String message) {  // ← Принимаем String
+    public void handleValidationRequest(String message) {
         log.info("📨 Получено сообщение от booking-сервиса: {}", message);
 
         try {

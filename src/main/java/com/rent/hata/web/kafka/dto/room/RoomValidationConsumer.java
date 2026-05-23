@@ -1,7 +1,6 @@
 package com.rent.hata.web.kafka.dto.room;
 
 import com.rent.hata.room.service.RoomService;
-import com.rent.hata.web.kafka.dto.enums.ProfileAction;
 import com.rent.hata.web.kafka.dto.enums.RoomAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

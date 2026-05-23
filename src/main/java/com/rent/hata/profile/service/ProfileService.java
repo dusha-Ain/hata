@@ -124,7 +124,7 @@ public class ProfileService {
 
     @Transactional
     public void addProfileToRequest(UUID idProfile, UUID idRequest) {
-        var maybeProfile = ProfileValidator.checkProfileExists(
+        ProfileValidator.checkProfileExists(
                 profileDao.getByIdWithLock(idProfile), idProfile);
         RoommateRequestEntity findRequest =
                 RoommateRequestValidator.validateRequestCheckExists(
@@ -140,7 +140,7 @@ public class ProfileService {
 
     @Transactional
     public void deleteProfileFromRequest(UUID idProfile, UUID idRequest) {
-        var maybeProfile = ProfileValidator.checkProfileExists(
+       ProfileValidator.checkProfileExists(
                 profileDao.getByIdWithLock(idProfile), idProfile);
         RoommateRequestEntity findRequest =
                 RoommateRequestValidator.validateRequestCheckExists(

@@ -1,7 +1,5 @@
 package com.rent.hata.room.service;
 
-import com.rent.hata.profile.dto.ProfileKafka;
-import com.rent.hata.profile.service.ProfileValidator;
 import com.rent.hata.room.dao.RoomDao;
 import com.rent.hata.room.dto.*;
 import com.rent.hata.room.dto.enums.Operation;
@@ -9,9 +7,9 @@ import com.rent.hata.room.dto.enums.RoomStatus;
 import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
+import com.rent.hata.web.exception.ValidationException;
 import com.rent.hata.web.helpers.AppConfig;
 import com.rent.hata.web.helpers.Pageable;
-import com.rent.hata.web.exception.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
