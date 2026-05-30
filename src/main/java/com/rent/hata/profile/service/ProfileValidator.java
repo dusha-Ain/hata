@@ -1,11 +1,10 @@
 package com.rent.hata.profile.service;
 
-import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.profile.dto.IdFavorite;
 import com.rent.hata.profile.dto.ProfilePassword;
 import com.rent.hata.profile.dto.ProfileSecurity;
 import com.rent.hata.profile.entity.ProfileEntity;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import com.rent.hata.web.exception.BadCredentialsPasswordException;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.ValidationException;

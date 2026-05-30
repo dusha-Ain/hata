@@ -5,7 +5,7 @@ import com.rent.hata.comfort.entity.ComfortEntity;
 import com.rent.hata.comfort.entity.ComfortsEntity;
 import com.rent.hata.comfort.service.ComfortSearchFilter;
 import com.rent.hata.comfort.service.ComfortValidator;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;

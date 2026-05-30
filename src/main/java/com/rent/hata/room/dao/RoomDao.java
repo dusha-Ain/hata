@@ -5,7 +5,7 @@ import com.rent.hata.room.entity.AddressEntity;
 import com.rent.hata.room.entity.RoomEntity;
 import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.room.service.RoomSearchFilter;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import com.rent.hata.web.exception.EntityToManyResultException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -166,10 +166,10 @@ public class RoomDao {
         var map = new MapSqlParameterSource()
                 .addValue("price", filter.price())
                 .addValue("capacity", filter.capacity())
-                .addValue("country",  filter.address() != null ? filter.address().country() : null)
-                .addValue("city",  filter.address() != null ? filter.address().city() : null)
-                .addValue("street",  filter.address() != null ? filter.address().street() : null)
-                .addValue("houseNumber",  filter.address() != null ? filter.address().houseNumber() : null)
+                .addValue("country", filter.address() != null ? filter.address().country() : null)
+                .addValue("city", filter.address() != null ? filter.address().city() : null)
+                .addValue("street", filter.address() != null ? filter.address().street() : null)
+                .addValue("houseNumber", filter.address() != null ? filter.address().houseNumber() : null)
                 .addValue("limit", pageable.getPageSize())
                 .addValue("offset", (pageable.getPageNumber() - 1) * pageable.getPageSize());
         return new RoomsEntity(template.query(sql, map, roomRowMapper));
@@ -290,5 +290,18 @@ public class RoomDao {
         return 1 == template.update(sql, map);
     }
 
+    public boolean existsById(UUID idRoom, UUID idRoomOwner) {
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM room
+                    WHERE id=:idRoom and id_profile=:idRoomOwner
+                )
+                """;
+        var map = new MapSqlParameterSource()
+                .addValue("idRoom", idRoom)
+                .addValue("idRoomOwner", idRoomOwner);
+        return Boolean.TRUE.equals(template.queryForObject(sql, map, Boolean.class));
+    }
 }
 

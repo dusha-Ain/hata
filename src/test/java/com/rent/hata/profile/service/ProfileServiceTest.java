@@ -6,7 +6,7 @@ import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.entity.ProfileEntity;
 import com.rent.hata.profile.entity.ProfilesEntity;
 import com.rent.hata.room.service.RoomMapper;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import com.rent.hata.web.exception.BadCredentialsPasswordException;
 import com.rent.hata.web.exception.EntityNotFoundException;
 import com.rent.hata.web.exception.ValidationException;
@@ -49,7 +49,7 @@ class ProfileServiceTest {
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(profileDao, mapper, roomMapper);
+        profileService = new ProfileService(profileDao, mapper, roomMapper, null);
     }
 
 

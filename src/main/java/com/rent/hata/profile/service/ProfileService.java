@@ -9,8 +9,9 @@ import com.rent.hata.room.entity.RoomsEntity;
 import com.rent.hata.room.service.RoomMapper;
 import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
 import com.rent.hata.roommate_request.service.RoommateRequestValidator;
-import com.rent.hata.web.AppConfig;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.AppConfig;
+import com.rent.hata.web.helpers.Pageable;
+import com.rent.hata.web.kafka.ProfileEventProducer;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +26,16 @@ public class ProfileService {
     private final ProfileDao profileDao;
     private final ProfileMapper mapper;
     private final RoomMapper roomMapper;
+    private final ProfileEventProducer eventProducer;
 
     public ProfileService(ProfileDao profileDao,
                           ProfileMapper mapper,
-                          RoomMapper roomMapper) {
+                          RoomMapper roomMapper,
+                          ProfileEventProducer eventProducer) {
         this.profileDao = profileDao;
         this.mapper = mapper;
         this.roomMapper = roomMapper;
+        this.eventProducer = eventProducer;
     }
 
     @Transactional
@@ -42,6 +46,7 @@ public class ProfileService {
         ProfileValidator.validateProfileCreate(profileDao.createProfile(profileEntity));
         ProfileEntity savedProfile = ProfileValidator.checkProfileExistsAfterCreate(
                 profileDao.getProfileByPhone(profile.phone()));
+        eventProducer.sendProfileCreated(mapper.toProfileKafka(savedProfile));
         return mapper.toDomainProfile(savedProfile);
     }
 
@@ -66,6 +71,7 @@ public class ProfileService {
     public void deleteProfile(UUID id) {
         ProfileValidator.checkProfileExists(profileDao.getByIdWithLock(id), id);
         ProfileValidator.validateProfileDelete(profileDao.delete(id), id);
+        eventProducer.sendProfileDeleted(id);
     }
 
 
@@ -77,6 +83,7 @@ public class ProfileService {
         ProfileValidator.validateProfileUpdate(profileDao.update(updateProfile), id);
         ProfileEntity savedProfile =
                 ProfileValidator.checkProfileExistsAfterUpdate(profileDao.getById(id), id);
+        eventProducer.sendProfileUpdated(mapper.toProfileKafka(savedProfile));
         return mapper.toDomainProfile(savedProfile);
     }
 
@@ -117,7 +124,7 @@ public class ProfileService {
 
     @Transactional
     public void addProfileToRequest(UUID idProfile, UUID idRequest) {
-        var maybeProfile = ProfileValidator.checkProfileExists(
+        ProfileValidator.checkProfileExists(
                 profileDao.getByIdWithLock(idProfile), idProfile);
         RoommateRequestEntity findRequest =
                 RoommateRequestValidator.validateRequestCheckExists(
@@ -133,7 +140,7 @@ public class ProfileService {
 
     @Transactional
     public void deleteProfileFromRequest(UUID idProfile, UUID idRequest) {
-        var maybeProfile = ProfileValidator.checkProfileExists(
+       ProfileValidator.checkProfileExists(
                 profileDao.getByIdWithLock(idProfile), idProfile);
         RoommateRequestEntity findRequest =
                 RoommateRequestValidator.validateRequestCheckExists(
@@ -151,5 +158,14 @@ public class ProfileService {
         ProfilesEntity profilesEntity = profileDao.getAllProfilesFromRequest(idRequest);
         return new Profiles(profilesEntity.list.stream()
                 .map(mapper::toDomainProfile).toList());
+    }
+
+    public ProfileKafka getByIdForKafka(UUID id) {
+        var profileEntity = ProfileValidator.checkProfileExists(profileDao.getById(id), id);
+        return mapper.toProfileKafka(profileEntity);
+    }
+
+    public boolean existsByIdForKafka(UUID id) {
+        return profileDao.existsById(id);
     }
 }

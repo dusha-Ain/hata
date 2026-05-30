@@ -1,4 +1,4 @@
-package com.rent.hata.web;
+package com.rent.hata.web.helpers;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;

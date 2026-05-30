@@ -1,4 +1,4 @@
-package com.rent.hata.web;
+package com.rent.hata.web.helpers;
 
 public class Pageable {
 

@@ -1,11 +1,9 @@
 package com.rent.hata.profile.controller;
 
-import com.rent.hata.comfort.dto.Comforts;
-import com.rent.hata.comfort.dto.IdComfortRoom;
 import com.rent.hata.profile.dto.*;
 import com.rent.hata.profile.service.ProfileService;
 import com.rent.hata.room.dto.Rooms;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

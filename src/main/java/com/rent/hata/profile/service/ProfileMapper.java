@@ -1,6 +1,7 @@
 package com.rent.hata.profile.service;
 
 import com.rent.hata.profile.dto.Profile;
+import com.rent.hata.profile.dto.ProfileKafka;
 import com.rent.hata.profile.dto.ProfileSecurity;
 import com.rent.hata.profile.dto.ProfileUpdate;
 import com.rent.hata.profile.entity.ProfileEntity;
@@ -55,6 +56,14 @@ public class ProfileMapper {
                 profile.getEmail(),
                 profile.getProfilePicture(),
                 profile.getRegistrationDate()
+        );
+    }
+
+    public ProfileKafka toProfileKafka(ProfileEntity profile){
+        return new ProfileKafka(
+                profile.getId().toString(),
+                profile.getFirstName(),
+                profile.getProfileRole().name()
         );
     }
 }

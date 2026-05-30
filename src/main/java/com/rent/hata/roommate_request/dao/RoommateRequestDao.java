@@ -5,7 +5,7 @@ import com.rent.hata.roommate_request.entity.RoommateRequestEntity;
 import com.rent.hata.roommate_request.entity.RoommatesRequestEntity;
 import com.rent.hata.roommate_request.service.RoommateRequestSearchFilter;
 import com.rent.hata.roommate_request.service.RoommateRequestValidator;
-import com.rent.hata.web.Pageable;
+import com.rent.hata.web.helpers.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;

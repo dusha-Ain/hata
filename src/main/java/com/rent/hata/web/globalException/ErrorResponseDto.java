@@ -1,4 +1,4 @@
-package com.rent.hata.web;
+package com.rent.hata.web.globalException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
